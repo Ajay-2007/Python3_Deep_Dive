@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import shlex
 import shutil
 import pytest
 import subprocess
@@ -151,7 +152,8 @@ class ClassTest(object):
             shutil.rmtree("/tmp/testfolder")
 
     @staticmethod
-    def test_order():
+    @pytest.mark.parametrize("argument", ["", "-r", "-t", "-rt"])
+    def test_order(argument):
         """test simple ls
 
         Returns:
@@ -162,30 +164,13 @@ class ClassTest(object):
             Path("/tmp/testfolder/first.txt").touch()
             time.sleep(0.1)
             Path("/tmp/testfolder/second.txt").touch()
-            result = subprocess.run(["ls", "/tmp/testfolder"], stdout=subprocess.PIPE)
-            assert result.stdout.decode("UTF-8").startswith(
-                "first.txt"
-            ), "output of ls with no arguments was wrong!"
 
-            result = subprocess.run(
-                ["ls", "-r", "/tmp/testfolder"], stdout=subprocess.PIPE
-            )
-            assert result.stdout.decode("UTF-8").startswith(
-                "second.txt"
-            ), "output of ls with -r argument was wrong!"
+            command = ["ls", argument, "/tmp/testfolder"]
+            arguments = " ".join(x for x in command if x != "")
 
-            result = subprocess.run(
-                ["ls", "-t", "/tmp/testfolder"], stdout=subprocess.PIPE
-            )
+            result = subprocess.run(shlex.split(arguments), stdout=subprocess.PIPE)
             assert result.stdout.decode("UTF-8").startswith(
-                "second.txt"
-            ), "output of ls with -t argument was wrong!"
-
-            result = subprocess.run(
-                ["ls", "-rt", "/tmp/testfolder"], stdout=subprocess.PIPE
-            )
-            assert result.stdout.decode("UTF-8").startswith(
-                "first.txt"
+                "first.txt" if argument in ["", "-rt"] else "second.txt"
             ), "output of ls with -rt argument was wrong!"
 
         finally:
