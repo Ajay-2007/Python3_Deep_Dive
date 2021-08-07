@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import shutil
 import pytest
 import subprocess
@@ -146,5 +147,46 @@ class ClassTest(object):
             assert "first.txt" in str(
                 result.stdout
             ), "Listing a folder with -y option did not return expected result!"
+        finally:
+            shutil.rmtree("/tmp/testfolder")
+
+    @staticmethod
+    def test_order():
+        """test simple ls
+
+        Returns:
+            [type]: [description]
+        """
+        try:
+            os.mkdir("/tmp/testfolder")
+            Path("/tmp/testfolder/first.txt").touch()
+            time.sleep(0.1)
+            Path("/tmp/testfolder/second.txt").touch()
+            result = subprocess.run(["ls", "/tmp/testfolder"], stdout=subprocess.PIPE)
+            assert result.stdout.decode("UTF-8").startswith(
+                "first.txt"
+            ), "output of ls with no arguments was wrong!"
+
+            result = subprocess.run(
+                ["ls", "-r", "/tmp/testfolder"], stdout=subprocess.PIPE
+            )
+            assert result.stdout.decode("UTF-8").startswith(
+                "second.txt"
+            ), "output of ls with -r argument was wrong!"
+
+            result = subprocess.run(
+                ["ls", "-t", "/tmp/testfolder"], stdout=subprocess.PIPE
+            )
+            assert result.stdout.decode("UTF-8").startswith(
+                "second.txt"
+            ), "output of ls with -t argument was wrong!"
+
+            result = subprocess.run(
+                ["ls", "-rt", "/tmp/testfolder"], stdout=subprocess.PIPE
+            )
+            assert result.stdout.decode("UTF-8").startswith(
+                "first.txt"
+            ), "output of ls with -rt argument was wrong!"
+
         finally:
             shutil.rmtree("/tmp/testfolder")
