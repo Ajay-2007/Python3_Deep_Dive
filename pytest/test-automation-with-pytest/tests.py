@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import pytest
 import subprocess
@@ -85,6 +86,9 @@ class ClassTest(object):
             shutil.rmtree("/tmp/testfolder")
 
     @staticmethod
+    @pytest.mark.skipif(
+        sys.platform.startswith("win"), reason="Skipping non-windows test"
+    )
     def test_list_hidden_files():
         """test simple ls
 
@@ -105,5 +109,42 @@ class ClassTest(object):
             assert ".hidden_file" in str(
                 result.stdout
             ), "ls listed hidden file when it shouldn't have!"
+        finally:
+            shutil.rmtree("/tmp/testfolder")
+
+    @staticmethod
+    @pytest.mark.skipif(
+        not sys.platform.startswith("win"), reason="Skipping windows-only test"
+    )
+    def test_ls_windows():
+        try:
+            os.mkdir("c:\testfolder")
+            Path("c:\testfolder\first.txt").touch()
+            result = subprocess.run(["ls", "c:\testfolder"], stdout=subprocess.PIPE)
+            print("Result: [{}]".format(result))
+            assert "first.txt" in str(
+                result.stdout
+            ), "Listing a folder with one file did not return expected result!"
+        finally:
+            shutil.rmtree("c:\testfolder")
+
+    @staticmethod
+    @pytest.mark.xfail(reason="-y parameter does not yet work")
+    def test_unimplemented_feature():
+        """test simple ls
+
+        Returns:
+            [type]: [description]
+        """
+        try:
+            os.mkdir("/tmp/testfolder")
+            Path("/tmp/testfolder/first.txt").touch()
+            result = subprocess.run(
+                ["ls", "-y", "/tmp/testfolder"], stdout=subprocess.PIPE
+            )
+            print("Result: [{}]".format(result))
+            assert "first.txt" in str(
+                result.stdout
+            ), "Listing a folder with -y option did not return expected result!"
         finally:
             shutil.rmtree("/tmp/testfolder")
