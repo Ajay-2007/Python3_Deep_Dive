@@ -5,8 +5,14 @@ from selenium import webdriver
 
 
 @pytest.fixture
-def expensive_operations():
-    time.sleep(1)
+def expensive_operations(request):
+    if "last_in_group" in list(request._pyfuncitem.keywords.keys()):
+        request.addfinalizer(cleanup_manager)
+    time.sleep(0.5)
+
+
+def cleanup_manager():
+    print("\nCleaning up after expensive operation tests\n")
 
 
 class TestManager:
@@ -43,3 +49,11 @@ def web_driver(request):
 
     request.addfinalizer(stop_driver)
     return driver
+
+
+@pytest.hookimpl()
+def pytest_collection_modifyitems(items, config):
+    items.sort(key=lambda test: "expensive_operations" in test.fixturenames)
+
+    if items:
+        items[-1].add_marker("last_in_group")

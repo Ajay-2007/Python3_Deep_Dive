@@ -9,9 +9,9 @@ from pathlib import Path
 
 
 class ClassTest(object):
-    @pytest.fixture
-    def expensive_operations(self):
-        time.sleep(1)
+    # @pytest.fixture
+    # def expensive_operations(self):
+    #     time.sleep(1)
 
     class TestManager:
         def __init__(self, temporary_folder):

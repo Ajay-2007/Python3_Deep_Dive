@@ -8,7 +8,7 @@ from utils import wait_for
 
 @pytest.mark.web
 class WebTest(object):
-    def test_page_is_up(self, web_driver):
+    def test_page_is_up(self, web_driver, expensive_operations):
         web_driver.get("https://convertlive.com/c/convert/data-size")
         assert "converter" in web_driver.title, "Cannot detect website being available"
 
