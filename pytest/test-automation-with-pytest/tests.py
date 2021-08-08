@@ -9,127 +9,138 @@ from pathlib import Path
 
 
 class ClassTest(object):
-    @pytest.fixture
-    def afixture(self):
-        print("Afixture has run")
-        return 42
-
     def expensive_operations(self):
         time.sleep(1)
 
-    def test_list_empty_folder(self, tmp_path):
+    class TestManager:
+        def __init__(self, temporary_folder):
+            self.temporary_folder = temporary_folder
+
+        def create_file(self, filename, text=""):
+            (self.temporary_folder / filename).write_text(text)
+
+        def run_ls(self, argument=""):
+            if argument == "":
+                result = subprocess.run(
+                    ["ls", self.temporary_folder], stdout=subprocess.PIPE
+                )
+            else:
+                result = subprocess.run(
+                    ["ls", argument, self.temporary_folder], stdout=subprocess.PIPE
+                )
+
+            return result.stdout.decode("UTF-8")
+
+    @pytest.fixture
+    def test_manager(self, tmp_path):
+        return self.TestManager(tmp_path)
+
+    def test_list_empty_folder(self, test_manager):
         """[summary]
 
         Returns:
             [type]: [description]
         """
-        result = subprocess.run(["ls", str(tmp_path)], stdout=subprocess.PIPE)
-        assert not result.stdout.decode(
-            "UTF-8"
+        assert (
+            not test_manager.run_ls()
         ), "Listing an empty folder did not return expected result!"
 
-    def test_simple_ls(self, tmp_path):
+    def test_simple_ls(self, test_manager):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
-        Path(str(tmp_path) + "/first.txt").touch()
-        result = subprocess.run(["ls", tmp_path], stdout=subprocess.PIPE)
+        test_manager.create_file("first.txt")
+        result = test_manager.run_ls()
         print("Result: [{}]".format(result))
-        assert "first.txt" in result.stdout.decode(
-            "UTF-8"
+        assert (
+            "first.txt" in result
         ), "Listing a folder with one file did not return expected result!"
 
-    def test_list_multiple_files(self, tmp_path):
+    def test_list_multiple_files(self, test_manager):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
         self.expensive_operations()
-        Path(str(tmp_path) + "/first.txt").touch()
-        Path(str(tmp_path) + "/second.doc").touch()
-        result = subprocess.run(["ls", str(tmp_path)], stdout=subprocess.PIPE)
+        test_manager.create_file("first.txt", "")
+        test_manager.create_file("second.doc", "")
+        result = test_manager.run_ls()
         print("Result: [{}]".format(result))
-        assert "first.txt" in result.stdout.decode(
-            "UTF-8"
+        assert (
+            "first.txt" in result
         ), "Listing a folder with multiple files did not return expected result!"
-        assert "second.doc" in result.stdout.decode(
-            "UTF-8"
+        assert (
+            "second.doc" in result
         ), "Listing a folder with multiple files did not return expected result!"
 
-    def test_hidden_files(self, tmp_path):
+    def test_hidden_files(self, test_manager):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
         self.expensive_operations()
-        Path(str(tmp_path) + "/first.txt").touch()
-        Path(str(tmp_path) + "/.hidden_file").touch()
-        result = subprocess.run(["ls", str(tmp_path)], stdout=subprocess.PIPE)
+        test_manager.create_file("first.txt", "")
+        test_manager.create_file(".hidden_file", "")
+        result = test_manager.run_ls()
         print("Result: [{}]".format(result))
-        assert "first.txt" in result.stdout.decode(
-            "UTF-8"
+        assert (
+            "first.txt" in result
         ), "Listing a folder with hidden file did not return expected result!"
-        assert ".hidden_file" not in result.stdout.decode(
-            "UTF-8"
+        assert (
+            ".hidden_file" not in result
         ), "ls listed hidden file when it shouldn't have!"
 
     @pytest.mark.skipif(
         sys.platform.startswith("win"), reason="Skipping non-windows test"
     )
-    def test_list_hidden_files(self, tmp_path):
+    def test_list_hidden_files(self, test_manager):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
         self.expensive_operations()
-        Path(str(tmp_path) + "/first.txt").touch()
-        Path(str(tmp_path) + "/.hidden_file").touch()
-        result = subprocess.run(["ls", "-a", str(tmp_path)], stdout=subprocess.PIPE)
+        test_manager.create_file("first.txt", "")
+        test_manager.create_file(".hidden_file", "")
+        result = test_manager.run_ls(argument="-a")
         print("Result: [{}]".format(result))
-        assert "first.txt" in result.stdout.decode(
-            "UTF-8"
+        assert (
+            "first.txt" in result
         ), "Listing a folder with hidden file did not return expected result!"
-        assert ".hidden_file" in result.stdout.decode(
-            "UTF-8"
-        ), "ls listed hidden file when it shouldn't have!"
+        assert ".hidden_file" in result, "ls listed hidden file when it shouldn't have!"
 
     @pytest.mark.notpassing
     @pytest.mark.xfail(reason="-y parameter does not yet work")
-    def test_unimplemented_feature(self, tmp_path):
+    def test_unimplemented_feature(self, test_manager):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
-        Path(str(tmp_path) + "/first.txt").touch()
-        result = subprocess.run(["ls", "-y", str(tmp_path)], stdout=subprocess.PIPE)
+        test_manager.create_file("first.text")
+        test_manager.run_ls(argument="-y")
         print("Result: [{}]".format(result))
-        assert "first.txt" in result.stdout.decode(
-            "UTF-8"
+        assert (
+            "first.txt" in result
         ), "Listing a folder with -y option did not return expected result!"
 
     @pytest.mark.parametrize("argument", ["", "-r", "-t", "-rt"])
-    def test_order(self, argument, tmp_path):
+    def test_order(self, argument, test_manager):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
         self.expensive_operations()
-        Path(str(tmp_path) + "/first.txt").touch()
+        test_manager.create_file("first.txt")
         time.sleep(0.1)
-        Path(str(tmp_path) + "/second.txt").touch()
-
-        command = ["ls", argument, str(tmp_path)]
-        arguments = " ".join(x for x in command if x != "")
-
-        result = subprocess.run(shlex.split(arguments), stdout=subprocess.PIPE)
-        assert result.stdout.decode("UTF-8").startswith(
+        test_manager.create_file("second.txt")
+        result = test_manager.run_ls(argument)
+        assert result.startswith(
             "first.txt" if argument in ["", "-rt"] else "second.txt"
         ), "output of ls with argument '{}' was wrong!".format(argument)
 
