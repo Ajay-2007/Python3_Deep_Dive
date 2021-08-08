@@ -13,6 +13,7 @@ pytest-cov = "*"
 pytest-xdist = "*"
 pytest-repeat = "*"
 pytest-html = "*"
+selenium = "*"
 
 [dev-packages]
 
