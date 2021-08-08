@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Test Form Input</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+        
+        <script src="" async defer></script>
+    </body>
+    <div id="header">Calculate sum</div>
+    <div id="content-wrapper">
+        <div id="form-space">
+            <form id="sumForm">
+                <label for="firstint">First number:</label>
+                <input type="text" id="firstint" name="firstint">
+                <label for="secondint">Second number:</label>
+                <input type="text" id="secondint" name="secondint"><br/><br/>
+                <button id="calculate" onclick="return calculateSum()">Calculate</button>
+            </form>
+            <p id="result">&nbsp;&nbsp;</p>
+
+        <script>
+            function calculateSum() {
+                var firstInt = document.getElementById("sumForm").elements[0].value;
+                var secondInt = document.getElementById("sumForm").elements[1].value;
+                document.getElementById("result").innerHTML = +firstInt + +secondInt;
+                return false
+            }
+        </script>
+    </div>
+    </div>
+    </body>
+</html>
