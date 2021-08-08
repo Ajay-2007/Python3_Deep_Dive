@@ -12,6 +12,7 @@ pytest-clarity = "*"
 pytest-cov = "*"
 pytest-xdist = "*"
 pytest-repeat = "*"
+pytest-html = "*"
 
 [dev-packages]
 
