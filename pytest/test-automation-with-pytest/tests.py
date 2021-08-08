@@ -9,24 +9,6 @@ from pathlib import Path
 
 
 class ClassTest(object):
-
-    testfolder_path = "/tmp/testfolder_{}".format(
-        str(os.environ.get("PYTEST_XDIST_WORKER"))
-    )
-
-    @pytest.fixture(scope="function", autouse=True)
-    def temporary_folder(self, request):
-        print("Setup")
-        if not os.path.exists(self.testfolder_path):
-            os.mkdir(self.testfolder_path)
-
-        def fin():
-            print("Teardown")
-            if os.path.exists(self.testfolder_path):
-                shutil.rmtree(self.testfolder_path)
-
-        request.addfinalizer(fin)
-
     @pytest.fixture
     def afixture(self):
         print("Afixture has run")
@@ -35,40 +17,40 @@ class ClassTest(object):
     def expensive_operations(self):
         time.sleep(1)
 
-    def test_list_empty_folder(self):
+    def test_list_empty_folder(self, tmp_path):
         """[summary]
 
         Returns:
             [type]: [description]
         """
-        result = subprocess.run(["ls", self.testfolder_path], stdout=subprocess.PIPE)
+        result = subprocess.run(["ls", str(tmp_path)], stdout=subprocess.PIPE)
         assert not result.stdout.decode(
             "UTF-8"
         ), "Listing an empty folder did not return expected result!"
 
-    def test_simple_ls(self):
+    def test_simple_ls(self, tmp_path):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
-        Path(self.testfolder_path + "/first.txt").touch()
-        result = subprocess.run(["ls", self.testfolder_path], stdout=subprocess.PIPE)
+        Path(str(tmp_path) + "/first.txt").touch()
+        result = subprocess.run(["ls", tmp_path], stdout=subprocess.PIPE)
         print("Result: [{}]".format(result))
         assert "first.txt" in result.stdout.decode(
             "UTF-8"
         ), "Listing a folder with one file did not return expected result!"
 
-    def test_list_multiple_files(self):
+    def test_list_multiple_files(self, tmp_path):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
         self.expensive_operations()
-        Path(self.testfolder_path + "/first.txt").touch()
-        Path(self.testfolder_path + "/second.doc").touch()
-        result = subprocess.run(["ls", self.testfolder_path], stdout=subprocess.PIPE)
+        Path(str(tmp_path) + "/first.txt").touch()
+        Path(str(tmp_path) + "/second.doc").touch()
+        result = subprocess.run(["ls", str(tmp_path)], stdout=subprocess.PIPE)
         print("Result: [{}]".format(result))
         assert "first.txt" in result.stdout.decode(
             "UTF-8"
@@ -77,16 +59,16 @@ class ClassTest(object):
             "UTF-8"
         ), "Listing a folder with multiple files did not return expected result!"
 
-    def test_hidden_files(self):
+    def test_hidden_files(self, tmp_path):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
         self.expensive_operations()
-        Path(self.testfolder_path + "/first.txt").touch()
-        Path(self.testfolder_path + "/.hidden_file").touch()
-        result = subprocess.run(["ls", self.testfolder_path], stdout=subprocess.PIPE)
+        Path(str(tmp_path) + "/first.txt").touch()
+        Path(str(tmp_path) + "/.hidden_file").touch()
+        result = subprocess.run(["ls", str(tmp_path)], stdout=subprocess.PIPE)
         print("Result: [{}]".format(result))
         assert "first.txt" in result.stdout.decode(
             "UTF-8"
@@ -98,18 +80,16 @@ class ClassTest(object):
     @pytest.mark.skipif(
         sys.platform.startswith("win"), reason="Skipping non-windows test"
     )
-    def test_list_hidden_files(self):
+    def test_list_hidden_files(self, tmp_path):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
         self.expensive_operations()
-        Path(self.testfolder_path + "/first.txt").touch()
-        Path(self.testfolder_path + "/.hidden_file").touch()
-        result = subprocess.run(
-            ["ls", "-a", self.testfolder_path], stdout=subprocess.PIPE
-        )
+        Path(str(tmp_path) + "/first.txt").touch()
+        Path(str(tmp_path) + "/.hidden_file").touch()
+        result = subprocess.run(["ls", "-a", str(tmp_path)], stdout=subprocess.PIPE)
         print("Result: [{}]".format(result))
         assert "first.txt" in result.stdout.decode(
             "UTF-8"
@@ -120,34 +100,32 @@ class ClassTest(object):
 
     @pytest.mark.notpassing
     @pytest.mark.xfail(reason="-y parameter does not yet work")
-    def test_unimplemented_feature(self):
+    def test_unimplemented_feature(self, tmp_path):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
-        Path(self.testfolder_path + "/first.txt").touch()
-        result = subprocess.run(
-            ["ls", "-y", self.testfolder_path], stdout=subprocess.PIPE
-        )
+        Path(str(tmp_path) + "/first.txt").touch()
+        result = subprocess.run(["ls", "-y", str(tmp_path)], stdout=subprocess.PIPE)
         print("Result: [{}]".format(result))
         assert "first.txt" in result.stdout.decode(
             "UTF-8"
         ), "Listing a folder with -y option did not return expected result!"
 
     @pytest.mark.parametrize("argument", ["", "-r", "-t", "-rt"])
-    def test_order(self, argument):
+    def test_order(self, argument, tmp_path):
         """test simple ls
 
         Returns:
             [type]: [description]
         """
         self.expensive_operations()
-        Path(self.testfolder_path + "/first.txt").touch()
+        Path(str(tmp_path) + "/first.txt").touch()
         time.sleep(0.1)
-        Path(self.testfolder_path + "/second.txt").touch()
+        Path(str(tmp_path) + "/second.txt").touch()
 
-        command = ["ls", argument, self.testfolder_path]
+        command = ["ls", argument, str(tmp_path)]
         arguments = " ".join(x for x in command if x != "")
 
         result = subprocess.run(shlex.split(arguments), stdout=subprocess.PIPE)
