@@ -14,17 +14,26 @@ class ClassTest(object):
         str(os.environ.get("PYTEST_XDIST_WORKER"))
     )
 
-    def expensive_operations(self):
-        time.sleep(1)
-
-    def setup(self):
+    @pytest.fixture(scope="function", autouse=True)
+    def temporary_folder(self, request):
         print("Setup")
         if not os.path.exists(self.testfolder_path):
             os.mkdir(self.testfolder_path)
 
-    def teardown(self):
-        if os.path.exists(self.testfolder_path):
-            shutil.rmtree(self.testfolder_path)
+        def fin():
+            print("Teardown")
+            if os.path.exists(self.testfolder_path):
+                shutil.rmtree(self.testfolder_path)
+
+        request.addfinalizer(fin)
+
+    @pytest.fixture
+    def afixture(self):
+        print("Afixture has run")
+        return 42
+
+    def expensive_operations(self):
+        time.sleep(1)
 
     def test_list_empty_folder(self):
         """[summary]
