@@ -3,6 +3,7 @@ from selenium import webdriver
 import time
 import os
 from tests.web.nginx import nginxServer, NginxConfig
+from utils import wait_for
 
 
 @pytest.mark.web
@@ -17,7 +18,6 @@ class WebTest(object):
         input_field.clear()
         input_field.send_keys("350")
         web_driver.find_element_by_id("convert-submit").click()
-        time.sleep(0.5)
         result_field = web_driver.find_element_by_class_name("result-to")
         assert "2800" in result_field.text, "Cannot detect right result for conversion"
 
@@ -41,6 +41,12 @@ class WebTest(object):
             calculate_button = web_driver.find_element_by_id("calculate")
             calculate_button.click()
 
-            time.sleep(0.5)
+            wait_for(
+                condition=lambda: web_driver.find_element_by_id("result").text.strip()
+                != "",
+                timeout=10,
+                poll_frequency=0.5,
+                msg="Cannot detect the result of the sum in time!",
+            )
             result = web_driver.find_element_by_id("result")
             assert "9" in result.text, "The sum result was invalid!"

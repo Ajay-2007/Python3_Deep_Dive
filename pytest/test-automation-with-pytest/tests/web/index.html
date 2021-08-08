@@ -35,8 +35,14 @@
             function calculateSum() {
                 var firstInt = document.getElementById("sumForm").elements[0].value;
                 var secondInt = document.getElementById("sumForm").elements[1].value;
-                document.getElementById("result").innerHTML = +firstInt + +secondInt;
-                return false
+                sleep(4000).then(() => { 
+                    document.getElementById("result").innerHTML = +firstInt + +secondInt;
+                });
+                return false;
+            }
+
+            function sleep(time) {
+                return new Promise((resolve) => setTimeout(resolve, time));
             }
         </script>
     </div>
