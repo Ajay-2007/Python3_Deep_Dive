@@ -1,6 +1,7 @@
 import time
 import pytest
 import subprocess
+from selenium import webdriver
 
 
 @pytest.fixture
@@ -31,3 +32,14 @@ class TestManager:
 @pytest.fixture
 def test_manager(tmp_path):
     return TestManager(tmp_path)
+
+
+@pytest.fixture(scope="class")
+def web_driver(request):
+    driver = webdriver.Firefox()
+
+    def stop_driver():
+        driver.close()
+
+    request.addfinalizer(stop_driver)
+    return driver
