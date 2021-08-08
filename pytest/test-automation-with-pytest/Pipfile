@@ -10,6 +10,7 @@ pytest-benchmark = "*"
 pytest-sugar = "*"
 pytest-clarity = "*"
 pytest-cov = "*"
+pytest-xdist = "*"
 
 [dev-packages]
 
