@@ -1,9 +1,8 @@
-from tests.web.nginx import nginxServer
 import pytest
 from selenium import webdriver
 import time
 import os
-from tests.web.nginx import nginxServer
+from tests.web.nginx import nginxServer, NginxConfig
 
 
 @pytest.mark.web
@@ -28,8 +27,9 @@ class WebTest(object):
 
     def test_local_site(self):
         driver = webdriver.Firefox()
+        config = NginxConfig(location=os.path.join(os.getcwd(), "tests", "web"))
         # start nginx
-        with nginxServer(os.path.join(os.getcwd(), "web", "nginx.conf")):
+        with nginxServer(config):
             driver.get("http://localhost:8090")
             assert (
                 "Test Form" in driver.title

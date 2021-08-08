@@ -8,9 +8,16 @@ logger = logging.getLogger(__name__)
 
 
 class NginXServer(object):
-    def __init__(self, config_file, location) -> None:
+    # def __init__(self, config_file, location) -> None:
+    #     self.nginx_location = location
+    #     self.config_file = config_file
+
+    #     self.process = None
+
+    def __init__(self, config, location) -> None:
         self.nginx_location = location
-        self.config_file = config_file
+        config.write_to("/tmp/generated_config.cfg")
+        self.config_file = "/tmp/generated_config.cfg"
 
         self.process = None
 
@@ -40,3 +47,49 @@ def nginxServer(config_file, location="/usr/sbin/nginx"):
         yield server
     finally:
         server.stop()
+
+
+class NginxConfig(object):
+    def __init__(
+        self,
+        processes=1,
+        daemon=False,
+        error_log="nginx_error.log",
+        worker_connections=1024,
+        port=8090,
+        location="/var/www/html",
+    ) -> None:
+        self.body = """
+        
+        worker_processes {};
+        daemon {};
+        error_log {};
+        events {{
+            worker_connections {};
+        }}
+
+        http {{
+            server {{
+                listen {};
+
+                location / {{
+                    root {};
+                }}
+            }}
+        }}
+        """.format(
+            processes,
+            "on" if daemon else "off",
+            error_log,
+            worker_connections,
+            port,
+            location,
+        )
+
+    def to_string(self):
+        return self.body
+
+    def write_to(self, filename):
+        f = open(filename, "w")
+        f.write(self.body)
+        f.close()
